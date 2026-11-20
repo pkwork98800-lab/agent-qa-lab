@@ -1,0 +1,50 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 22]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install dependencies (locked)
+        run: npm ci
+
+      - name: Reject forbidden leftovers
+        run: |
+          if git grep -RnE 'TODO|FIXME|your-key-here|example\.com|XXX' -- src apps scenarios framework scripts tests docs; then
+            echo "::error::Forbidden leftover found (TODO / FIXME / your-key-here / example.com / XXX)."
+            exit 1
+          fi
+          echo "No forbidden leftovers found."
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test
+
+      - name: Eval smoke (offline, deterministic)
+        run: npm run eval:smoke
+
+      - name: Generate reports
+        run: npm run report
+
+      - name: Playwright collection check
+        run: npx playwright test --config framework/playwright/playwright.config.ts --list
