@@ -39,11 +39,14 @@ function parseArgs(argv: string[]): { suite: string | null; hardened: boolean; l
   let hardened = false;
   let live = false;
   let runId: string | undefined;
-  for (const a of argv) {
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
     if (a === '--hardened') hardened = true;
     else if (a === '--live') live = true;
     else if (a.startsWith('--suite=')) suite = a.slice('--suite='.length);
+    else if (a === '--suite' && i + 1 < argv.length) { suite = argv[i + 1]; i++; }
     else if (a.startsWith('--run-id=')) runId = a.slice('--run-id='.length);
+    else if (a === '--run-id' && i + 1 < argv.length) { runId = argv[i + 1]; i++; }
     else if (a === '--help' || a === '-h') {
       console.log('Usage: tsx scripts/run-eval.ts [--suite smoke|core|redteam] [--hardened] [--live] [--run-id=...]');
       process.exit(0);

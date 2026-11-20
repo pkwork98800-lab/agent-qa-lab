@@ -74,4 +74,13 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-return': 'off',
     },
   },
+  {
+    // node:test wraps every test callback in a promise it owns; rejecting is
+    // the runner's job, not the test's. Sync `assert` bodies are the norm here.
+    files: ['tests/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'off',
+      '@typescript-eslint/no-misused-promises': 'off',
+    },
+  },
 );
