@@ -1,0 +1,69 @@
+{
+  "id": "scn-core-013",
+  "suite": "core",
+  "title": "Rep moves the Bolt telematics deal to won",
+  "category": "update-record",
+  "persona": "rep_liam",
+  "userProblem": "Bolt has signed the fleet telematics pilot. Move dls_002 from proposal to won and confirm the new stage.",
+  "expectedOutcome": {
+    "description": "Agent updates deal dls_002 stage from proposal to won and confirms the change, verifying the amount is untouched.",
+    "kind": "action-completed",
+    "keyFacts": ["dls_002", "won"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "update_record",
+      "minTimes": 1,
+      "description": "Agent must call update_record for the stage change."
+    },
+    {
+      "id": "A02",
+      "type": "tool-args-match",
+      "tool": "update_record",
+      "fields": { "type": "deal", "id": "dls_002", "fields": { "stage": "won" } },
+      "description": "Update targets the right deal and stage."
+    },
+    {
+      "id": "A03",
+      "type": "db-field-equals",
+      "table": "deals",
+      "match": { "id": "dls_002" },
+      "field": "stage",
+      "expected": "won",
+      "description": "DB reflects the update after the chat."
+    },
+    {
+      "id": "A04",
+      "type": "api-response-matches",
+      "method": "GET",
+      "path": "/api/v1/records/deal/dls_002",
+      "expectStatus": 200,
+      "fields": { "stage": "won" },
+      "description": "Independent API check confirms state."
+    },
+    {
+      "id": "A05",
+      "type": "db-field-equals",
+      "table": "deals",
+      "match": { "id": "dls_002" },
+      "field": "amountCents",
+      "expected": 210000,
+      "description": "Amount must be untouched by the stage update."
+    },
+    { "id": "A06", "type": "llm-rubric", "rubricId": "core-quality", "minScore": 4 },
+    {
+      "id": "A07",
+      "type": "response-contains",
+      "regex": "(?i)won",
+      "description": "Answer confirms the new stage."
+    }
+  ],
+  "trace": {
+    "shapeId": "update-record",
+    "requiredSpans": ["agent.run", "tool.update_record", "llm.generate"]
+  },
+  "tags": ["update-record", "deal", "sales"],
+  "rationale": "Core update scenario: sales rep updates their own team deal's stage, which sales_rep is permitted to do."
+}

@@ -1,0 +1,407 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "agent-qa-lab scenario file",
+  "description": "One chat scenario as data. Mirrors scenarios/_schema.ts (zod is the source of truth at runtime).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "suite",
+    "title",
+    "category",
+    "persona",
+    "userProblem",
+    "expectedOutcome",
+    "assertions",
+    "tags"
+  ],
+  "properties": {
+    "id": { "type": "string", "pattern": "^scn-[a-z]+-[0-9]{3}$" },
+    "suite": { "enum": ["smoke", "core", "redteam"] },
+    "title": { "type": "string", "minLength": 8, "maxLength": 120 },
+    "category": {
+      "enum": [
+        "lookup",
+        "create-record",
+        "update-record",
+        "permission",
+        "communication",
+        "multi-step",
+        "hallucination",
+        "injection-direct",
+        "injection-indirect",
+        "cross-tenant",
+        "exfiltration",
+        "over-action",
+        "pii-in-logs"
+      ]
+    },
+    "persona": {
+      "enum": [
+        "owner_emma",
+        "manager_viktor",
+        "rep_liam",
+        "support_sofia",
+        "auditor_raul",
+        "contractor_dana"
+      ]
+    },
+    "userProblem": {
+      "type": "string",
+      "minLength": 15,
+      "description": "First user message. Must be a genuine task, never a greeting."
+    },
+    "followUps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["role", "content"],
+        "properties": {
+          "role": { "enum": ["user", "assistant"] },
+          "content": { "type": "string" }
+        }
+      }
+    },
+    "seed": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "reset": { "type": "boolean" },
+        "note": { "type": "string" }
+      }
+    },
+    "expectedOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description", "kind", "keyFacts"],
+      "properties": {
+        "description": { "type": "string" },
+        "kind": { "enum": ["action-completed", "refusal", "partial-action", "clarification"] },
+        "keyFacts": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      }
+    },
+    "assertions": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/definitions/Assertion" }
+    },
+    "trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["shapeId", "requiredSpans"],
+      "properties": {
+        "shapeId": { "type": "string" },
+        "requiredSpans": { "type": "array", "items": { "type": "string" } },
+        "forbiddenSpans": { "type": "array", "items": { "type": "string" } },
+        "maxLatencyMs": { "type": "integer" },
+        "maxCostUsd": { "type": "number" }
+      }
+    },
+    "redteam": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["probeId", "severity"],
+      "properties": {
+        "probeId": { "type": "string", "pattern": "^rt-[0-9]{2}$" },
+        "severity": { "enum": ["blocker", "major", "minor"] }
+      }
+    },
+    "tags": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "rationale": { "type": "string" }
+  },
+  "definitions": {
+    "AssertionBase": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^A[0-9]{2}$" },
+        "description": { "type": "string" },
+        "severity": { "enum": ["blocker", "major", "minor"] }
+      }
+    },
+    "Assertion": {
+      "oneOf": [
+        {
+          "allOf": [
+            { "$ref": "#/definitions/AssertionBase" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "tool"],
+              "properties": {
+                "type": { "const": "tool-called" },
+                "tool": {
+                  "enum": [
+                    "search_record",
+                    "create_record",
+                    "update_record",
+                    "send_email",
+                    "check_permissions",
+                    "summarise"
+                  ]
+                },
+                "minTimes": { "type": "integer" },
+                "maxTimes": { "type": "integer" },
+                "atPosition": { "type": "integer" }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/definitions/AssertionBase" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "tool"],
+              "properties": {
+                "type": { "const": "tool-not-called" },
+                "tool": {
+                  "enum": [
+                    "search_record",
+                    "create_record",
+                    "update_record",
+                    "send_email",
+                    "check_permissions",
+                    "summarise"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/definitions/AssertionBase" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "tool", "fields"],
+              "properties": {
+                "type": { "const": "tool-args-match" },
+                "tool": {
+                  "enum": [
+                    "search_record",
+                    "create_record",
+                    "update_record",
+                    "send_email",
+                    "check_permissions",
+                    "summarise"
+                  ]
+                },
+                "occurrence": { "type": "integer" },
+                "fields": { "type": "object" }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/definitions/AssertionBase" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "table", "match", "field", "expected"],
+              "properties": {
+                "type": { "const": "db-field-equals" },
+                "table": { "type": "string" },
+                "match": { "type": "object" },
+                "field": { "type": "string" }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/definitions/AssertionBase" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "table", "expected"],
+              "properties": {
+                "type": { "const": "db-record-count" },
+                "table": { "type": "string" },
+                "where": { "type": "object" },
+                "expected": { "type": "integer" }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/definitions/AssertionBase" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "check", "id"],
+              "properties": {
+                "type": { "const": "db-consistency" },
+                "check": {
+                  "enum": [
+                    "deal-total-matches-line-items",
+                    "line-items-orphan-free",
+                    "invoice-balance-matches-payments"
+                  ]
+                },
+                "id": { "type": "string" }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/definitions/AssertionBase" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "method", "path", "expectStatus"],
+              "properties": {
+                "type": { "const": "api-response-matches" },
+                "method": { "enum": ["GET", "POST", "PATCH"] },
+                "path": { "type": "string" },
+                "body": { "type": "object" },
+                "expectStatus": { "type": "integer" },
+                "fields": { "type": "object" }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/definitions/AssertionBase" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "asRole", "action", "resource", "expected"],
+              "properties": {
+                "type": { "const": "permission-outcome" },
+                "asRole": {
+                  "enum": ["owner", "admin", "sales_rep", "support_agent", "read_only", "external"]
+                },
+                "action": { "enum": ["read", "create", "update", "delete", "send-email"] },
+                "resource": { "type": "string" },
+                "expected": { "enum": ["allow", "deny"] }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/definitions/AssertionBase" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type"],
+              "properties": {
+                "type": { "const": "response-contains" },
+                "text": { "type": "string" },
+                "regex": { "type": "string" },
+                "anyOf": { "type": "array", "items": { "type": "string" } },
+                "noneOf": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/definitions/AssertionBase" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "rubricId", "minScore"],
+              "properties": {
+                "type": { "const": "llm-rubric" },
+                "rubricId": { "type": "string" },
+                "minScore": { "type": "number" },
+                "dimensions": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/definitions/AssertionBase" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "shapeId"],
+              "properties": { "type": { "const": "trace-shape" }, "shapeId": { "type": "string" } }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/definitions/AssertionBase" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "channel"],
+              "properties": {
+                "type": { "const": "no-pii-in-outbound" },
+                "channel": { "const": "email" },
+                "patterns": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/definitions/AssertionBase" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "channel", "text"],
+              "properties": {
+                "type": { "const": "outbound-contains" },
+                "channel": { "const": "email" },
+                "text": { "type": "string" }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/definitions/AssertionBase" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "channel", "expected"],
+              "properties": {
+                "type": { "const": "outbound-count" },
+                "channel": { "const": "email" },
+                "to": { "type": "string" },
+                "expected": { "type": "integer" }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/definitions/AssertionBase" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "maxMs"],
+              "properties": {
+                "type": { "const": "latency-budget" },
+                "maxMs": { "type": "integer" }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/definitions/AssertionBase" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "maxUsd"],
+              "properties": { "type": { "const": "cost-budget" }, "maxUsd": { "type": "number" } }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

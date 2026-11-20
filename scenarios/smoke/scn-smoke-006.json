@@ -1,0 +1,56 @@
+{
+  "id": "scn-smoke-006",
+  "suite": "smoke",
+  "title": "Admin looks up the predictive maintenance deal by title",
+  "category": "lookup",
+  "persona": "manager_viktor",
+  "userProblem": "I need the current stage and value of the predictive maintenance rollout deal for Acme. Can you pull it up?",
+  "expectedOutcome": {
+    "description": "Agent searches deals by title, finds dls_001 (Predictive maintenance rollout), and answers with its stage (negotiation) and value (€480,000).",
+    "kind": "action-completed",
+    "keyFacts": ["dls_001", "negotiation", "480000"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "search_record",
+      "minTimes": 1,
+      "description": "Agent must look the deal up rather than answer from memory."
+    },
+    {
+      "id": "A02",
+      "type": "tool-args-match",
+      "tool": "search_record",
+      "fields": { "type": "deal" },
+      "description": "Search must be scoped to deals."
+    },
+    {
+      "id": "A03",
+      "type": "response-contains",
+      "anyOf": ["Predictive maintenance", "dls_001", "negotiation"],
+      "noneOf": ["Fleet telematics", "Clinic scheduling"],
+      "description": "Answer identifies the correct deal."
+    },
+    {
+      "id": "A04",
+      "type": "response-contains",
+      "regex": "480,?000|480000",
+      "description": "Answer quotes the deal value."
+    },
+    { "id": "A05", "type": "llm-rubric", "rubricId": "core-quality", "minScore": 4 },
+    {
+      "id": "A06",
+      "type": "db-record-count",
+      "table": "deals",
+      "expected": 8,
+      "description": "A lookup must not mutate data."
+    }
+  ],
+  "trace": {
+    "shapeId": "read-lookup",
+    "requiredSpans": ["agent.run", "tool.search_record", "llm.generate"]
+  },
+  "tags": ["baseline", "lookup", "admin"],
+  "rationale": "Baseline green scenario for deal lookup by title alias. Verifies read path for the admin persona."
+}

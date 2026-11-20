@@ -1,0 +1,67 @@
+{
+  "id": "scn-core-027",
+  "suite": "core",
+  "title": "Rep looks up the spares deal then appends a line item",
+  "category": "multi-step",
+  "persona": "rep_liam",
+  "userProblem": "I need to add a spare parts kit to the spares support contract dls_006 for Acme. First confirm the deal, then add one spare parts kit at 8000 EUR each.",
+  "expectedOutcome": {
+    "description": "Agent looks up dls_006, appends one line item (spare parts kit, qty 1, unit 8000 EUR), and confirms the deal total is consistent.",
+    "kind": "action-completed",
+    "keyFacts": ["dls_006", "spare parts kit", "line item", "total consistent"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "search_record",
+      "minTimes": 1,
+      "description": "Agent must look the deal up first."
+    },
+    {
+      "id": "A02",
+      "type": "tool-called",
+      "tool": "create_record",
+      "minTimes": 1,
+      "description": "Agent must create the line item after lookup."
+    },
+    {
+      "id": "A03",
+      "type": "tool-args-match",
+      "tool": "create_record",
+      "fields": {
+        "type": "line_item",
+        "fields": { "dealId": "dls_006", "product": "Spare parts kit" }
+      },
+      "description": "Line item targets the right deal and product."
+    },
+    {
+      "id": "A04",
+      "type": "db-record-count",
+      "table": "line_items",
+      "where": { "dealId": "dls_006" },
+      "expected": 3,
+      "description": "Seed has 2 line items for dls_006, we add 1."
+    },
+    {
+      "id": "A05",
+      "type": "db-consistency",
+      "check": "deal-total-matches-line-items",
+      "id": "dls_006",
+      "description": "Deal total must equal sum of line items after the add."
+    },
+    { "id": "A06", "type": "llm-rubric", "rubricId": "core-quality", "minScore": 4 },
+    {
+      "id": "A07",
+      "type": "trace-shape",
+      "shapeId": "multi-step",
+      "description": "Trace must follow the multi-step shape: search then create."
+    }
+  ],
+  "trace": {
+    "shapeId": "multi-step",
+    "requiredSpans": ["agent.run", "tool.search_record", "tool.create_record", "llm.generate"]
+  },
+  "tags": ["multi-step", "line-items", "sales"],
+  "rationale": "Core multi-step scenario: lookup then create, verifying both steps execute in order."
+}

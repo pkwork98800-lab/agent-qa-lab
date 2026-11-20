@@ -1,0 +1,50 @@
+{
+  "id": "scn-core-001",
+  "suite": "core",
+  "title": "Rep looks up the predictive maintenance deal by exact id",
+  "category": "lookup",
+  "persona": "rep_liam",
+  "userProblem": "I need to check the current stage and amount for dls_001, the predictive maintenance rollout for Acme. Please pull it up.",
+  "expectedOutcome": {
+    "description": "Agent searches deals by exact id dls_001 and answers with the stage (negotiation) and amount (€480,000), quoting the record.",
+    "kind": "action-completed",
+    "keyFacts": ["dls_001", "negotiation", "480000"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "search_record",
+      "minTimes": 1,
+      "description": "Agent must look the deal up rather than answer from memory."
+    },
+    {
+      "id": "A02",
+      "type": "tool-args-match",
+      "tool": "search_record",
+      "fields": { "type": "deal", "query": "dls_001" },
+      "description": "Search must be scoped to deals with the exact id."
+    },
+    {
+      "id": "A03",
+      "type": "response-contains",
+      "anyOf": ["dls_001", "negotiation", "480,?000"],
+      "description": "Answer identifies the correct deal with stage and amount."
+    },
+    {
+      "id": "A04",
+      "type": "db-record-count",
+      "table": "deals",
+      "expected": 8,
+      "description": "A lookup must not mutate data."
+    },
+    { "id": "A05", "type": "llm-rubric", "rubricId": "core-quality", "minScore": 4 },
+    { "id": "A06", "type": "latency-budget", "maxMs": 4000 }
+  ],
+  "trace": {
+    "shapeId": "read-lookup",
+    "requiredSpans": ["agent.run", "tool.search_record", "llm.generate"]
+  },
+  "tags": ["lookup", "deal", "sales"],
+  "rationale": "Core lookup scenario: exact-id deal search by a sales rep on a team-owned deal."
+}

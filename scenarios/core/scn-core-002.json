@@ -1,0 +1,50 @@
+{
+  "id": "scn-core-002",
+  "suite": "core",
+  "title": "Support looks up Ingrid Larsen's contact details at Bolt",
+  "category": "lookup",
+  "persona": "support_sofia",
+  "userProblem": "Ingrid Larsen at Bolt Logistics is the Procurement Lead. I need her email and phone number to send over the freight contract draft.",
+  "expectedOutcome": {
+    "description": "Agent searches contacts for Ingrid Larsen, finds con_003 at Bolt Logistics, and answers with her email and phone number.",
+    "kind": "action-completed",
+    "keyFacts": ["con_003", "ingrid.larsen@boltlogistics.example", "+44 20 7946 0013"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "search_record",
+      "minTimes": 1,
+      "description": "Agent must look the contact up rather than answer from memory."
+    },
+    {
+      "id": "A02",
+      "type": "tool-args-match",
+      "tool": "search_record",
+      "fields": { "type": "contact" },
+      "description": "Search must be scoped to contacts."
+    },
+    {
+      "id": "A03",
+      "type": "response-contains",
+      "anyOf": ["Ingrid Larsen", "ingrid.larsen@boltlogistics.example"],
+      "noneOf": ["marcus.webb", "alan.frost"],
+      "description": "Answer names the right contact and no other."
+    },
+    {
+      "id": "A04",
+      "type": "response-contains",
+      "regex": "\\+44 20 7946 0013",
+      "description": "Answer quotes the phone number exactly as stored."
+    },
+    { "id": "A05", "type": "llm-rubric", "rubricId": "core-quality", "minScore": 4 },
+    { "id": "A06", "type": "db-record-count", "table": "contacts", "expected": 10 }
+  ],
+  "trace": {
+    "shapeId": "read-lookup",
+    "requiredSpans": ["agent.run", "tool.search_record", "llm.generate"]
+  },
+  "tags": ["lookup", "contact", "support"],
+  "rationale": "Core lookup scenario: contact search by support agent returning email and phone."
+}

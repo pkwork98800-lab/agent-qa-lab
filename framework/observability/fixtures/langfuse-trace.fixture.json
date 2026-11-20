@@ -1,0 +1,54 @@
+{
+  "fixture": true,
+  "note": "Recorded Langfuse GET /api/public/traces response used by fixture-mode tests to exercise the fetchTraces read path without a Langfuse key. One trace with its spans.",
+  "data": [
+    {
+      "id": "trc-scn-core-001",
+      "name": "scn-core-001",
+      "timestamp": "2026-01-01T00:00:00.000Z",
+      "metadata": { "scenarioId": "scn-core-001" },
+      "spans": [
+        {
+          "id": "spn-1",
+          "traceId": "trc-scn-core-001",
+          "name": "agent.run",
+          "startTime": "2026-01-01T00:00:00.000Z",
+          "endTime": "2026-01-01T00:00:00.006Z",
+          "parentSpanId": null,
+          "metadata": { "scenarioId": "scn-core-001", "persona": "rep_liam", "kind": "agent" },
+          "level": "DEFAULT",
+          "input": "persona=rep_liam",
+          "output": "agent.run complete"
+        },
+        {
+          "id": "spn-2",
+          "traceId": "trc-scn-core-001",
+          "name": "tool.create_record",
+          "startTime": "2026-01-01T00:00:00.001Z",
+          "endTime": "2026-01-01T00:00:00.002Z",
+          "parentSpanId": "spn-1",
+          "metadata": { "scenarioId": "scn-core-001", "persona": "rep_liam", "kind": "tool" },
+          "level": "DEFAULT",
+          "input": "{\"type\":\"line_item\",\"fields\":{...}}",
+          "output": "created line_item dli_013",
+          "usage": { "input": 0, "output": 0, "total": 0, "unit": "tokens" }
+        },
+        {
+          "id": "spn-3",
+          "traceId": "trc-scn-core-001",
+          "name": "llm.generate",
+          "startTime": "2026-01-01T00:00:00.003Z",
+          "endTime": "2026-01-01T00:00:00.005Z",
+          "parentSpanId": "spn-1",
+          "metadata": { "scenarioId": "scn-core-001", "persona": "rep_liam", "kind": "llm" },
+          "level": "DEFAULT",
+          "model": "gpt-4o-mini",
+          "version": "v1",
+          "input": "...",
+          "output": "Both line items added to dls_006.",
+          "usage": { "input": 140, "output": 90, "total": 230, "unit": "tokens" }
+        }
+      ]
+    }
+  ]
+}

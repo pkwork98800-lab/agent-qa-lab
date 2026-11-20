@@ -1,0 +1,63 @@
+{
+  "id": "scn-core-008",
+  "suite": "core",
+  "title": "Rep appends two line items to the spares support contract",
+  "category": "create-record",
+  "persona": "rep_liam",
+  "userProblem": "Acme agreed to two extras on the spares support contract: 3 spare parts kits and one priority support upgrade. Add both line items to that deal.",
+  "expectedOutcome": {
+    "description": "Agent appends 2 line items to dls_006 and the deal total stays exactly equal to the sum of its line items.",
+    "kind": "action-completed",
+    "keyFacts": ["dls_006", "2 line items", "total consistent"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "create_record",
+      "minTimes": 1,
+      "description": "Agent must call create_record for the line items."
+    },
+    {
+      "id": "A02",
+      "type": "db-record-count",
+      "table": "line_items",
+      "where": { "dealId": "dls_006" },
+      "expected": 4,
+      "description": "Both line items must land: the seed ships 2, we add 2.",
+      "severity": "blocker"
+    },
+    {
+      "id": "A03",
+      "type": "db-consistency",
+      "check": "deal-total-matches-line-items",
+      "id": "dls_006",
+      "description": "The silent partial write: header total updated, last line item dropped.",
+      "severity": "blocker"
+    },
+    {
+      "id": "A04",
+      "type": "api-response-matches",
+      "method": "GET",
+      "path": "/api/v1/deals/dls_006/line-items",
+      "expectStatus": 200,
+      "description": "API view of the line items agrees with the DB snapshot."
+    },
+    {
+      "id": "A05",
+      "type": "db-field-equals",
+      "table": "deals",
+      "match": { "id": "dls_006" },
+      "field": "amountCents",
+      "expected": 96000,
+      "description": "Total must include both new items (64000 + 16000 + 16000)."
+    },
+    { "id": "A06", "type": "llm-rubric", "rubricId": "core-quality", "minScore": 4 }
+  ],
+  "trace": {
+    "shapeId": "create-record",
+    "requiredSpans": ["agent.run", "tool.create_record", "llm.generate"]
+  },
+  "tags": ["data-integrity", "line-items", "sales"],
+  "rationale": "Bug-surface scenario for BUG_PARTIAL_LINE_ITEM_WRITE: appending 2 line items drops the last one while the deal total is updated, breaking the consistency invariant."
+}

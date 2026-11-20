@@ -1,0 +1,59 @@
+{
+  "id": "scn-core-029",
+  "suite": "core",
+  "title": "Admin looks up Echo Financial then creates a contact for them",
+  "category": "multi-step",
+  "persona": "manager_viktor",
+  "userProblem": "Echo Financial has a new compliance contact, Sofia Ribeiro, email sofia.ribeiro@echofinancial.example. First confirm Echo Financial, then add her as a contact under Echo Financial.",
+  "expectedOutcome": {
+    "description": "Agent looks up cmp_echo, creates a contact for Sofia Ribeiro under cmp_echo, and confirms the new contact id.",
+    "kind": "action-completed",
+    "keyFacts": ["cmp_echo", "Sofia Ribeiro", "contact", "sofia.ribeiro@echofinancial.example"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "search_record",
+      "minTimes": 1,
+      "description": "Agent must look the company up first."
+    },
+    {
+      "id": "A02",
+      "type": "tool-called",
+      "tool": "create_record",
+      "minTimes": 1,
+      "description": "Agent must create the contact after lookup."
+    },
+    {
+      "id": "A03",
+      "type": "tool-args-match",
+      "tool": "create_record",
+      "fields": {
+        "type": "contact",
+        "fields": { "companyId": "cmp_echo", "name": "Sofia Ribeiro" }
+      },
+      "description": "Contact targets the right company."
+    },
+    {
+      "id": "A04",
+      "type": "db-record-count",
+      "table": "contacts",
+      "expected": 11,
+      "description": "Total contacts grows from 10 to 11."
+    },
+    { "id": "A05", "type": "llm-rubric", "rubricId": "core-quality", "minScore": 4 },
+    {
+      "id": "A06",
+      "type": "trace-shape",
+      "shapeId": "multi-step",
+      "description": "Trace must follow the multi-step shape: search then create."
+    }
+  ],
+  "trace": {
+    "shapeId": "multi-step",
+    "requiredSpans": ["agent.run", "tool.search_record", "tool.create_record", "llm.generate"]
+  },
+  "tags": ["multi-step", "contact", "admin"],
+  "rationale": "Core multi-step scenario: company lookup then contact creation, verifying both steps execute in order."
+}

@@ -1,0 +1,43 @@
+{
+  "id": "scn-core-004",
+  "suite": "core",
+  "title": "Admin looks up the data retention deal by id",
+  "category": "lookup",
+  "persona": "manager_viktor",
+  "userProblem": "I need to check dls_008, the data retention review deal for Cedar Health. What stage is it in and what's the value?",
+  "expectedOutcome": {
+    "description": "Agent searches deals by exact id dls_008 and answers with the stage (negotiation) and amount (£88,000), quoting the record.",
+    "kind": "action-completed",
+    "keyFacts": ["dls_008", "negotiation", "88000"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "search_record",
+      "minTimes": 1,
+      "description": "Agent must look the deal up rather than answer from memory."
+    },
+    {
+      "id": "A02",
+      "type": "tool-args-match",
+      "tool": "search_record",
+      "fields": { "type": "deal", "query": "dls_008" },
+      "description": "Search must be scoped to deals with the exact id."
+    },
+    {
+      "id": "A03",
+      "type": "response-contains",
+      "anyOf": ["dls_008", "negotiation", "88,?000"],
+      "description": "Answer identifies the correct deal with stage and amount."
+    },
+    { "id": "A04", "type": "db-record-count", "table": "deals", "expected": 8 },
+    { "id": "A05", "type": "llm-rubric", "rubricId": "core-quality", "minScore": 4 }
+  ],
+  "trace": {
+    "shapeId": "read-lookup",
+    "requiredSpans": ["agent.run", "tool.search_record", "llm.generate"]
+  },
+  "tags": ["lookup", "deal", "admin"],
+  "rationale": "Core lookup scenario: exact-id deal search by admin for a deal they own."
+}

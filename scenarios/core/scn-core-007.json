@@ -1,0 +1,50 @@
+{
+  "id": "scn-core-007",
+  "suite": "core",
+  "title": "External contractor looks up their own company's contact",
+  "category": "lookup",
+  "persona": "contractor_dana",
+  "userProblem": "I'm Dana at Echo Financial. I need Wei Chen's contact details — he's our Risk Analyst. What's his email and phone?",
+  "expectedOutcome": {
+    "description": "Agent searches contacts scoped to Echo Financial, finds con_008 (Wei Chen), and answers with his email and phone number.",
+    "kind": "action-completed",
+    "keyFacts": ["con_008", "wei.chen@echofinancial.example", "+1 415 555 0008"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "search_record",
+      "minTimes": 1,
+      "description": "Agent must look the contact up rather than answer from memory."
+    },
+    {
+      "id": "A02",
+      "type": "tool-args-match",
+      "tool": "search_record",
+      "fields": { "type": "contact" },
+      "description": "Search must be scoped to contacts."
+    },
+    {
+      "id": "A03",
+      "type": "response-contains",
+      "anyOf": ["Wei Chen", "wei.chen@echofinancial.example"],
+      "noneOf": ["Fatima Al-Sayed", "acme-aerospace"],
+      "description": "Answer names the right Echo Financial contact."
+    },
+    {
+      "id": "A04",
+      "type": "response-contains",
+      "regex": "\\+1 415 555 0008",
+      "description": "Answer quotes the phone number exactly as stored."
+    },
+    { "id": "A05", "type": "llm-rubric", "rubricId": "core-quality", "minScore": 4 },
+    { "id": "A06", "type": "db-record-count", "table": "contacts", "expected": 10 }
+  ],
+  "trace": {
+    "shapeId": "read-lookup",
+    "requiredSpans": ["agent.run", "tool.search_record", "llm.generate"]
+  },
+  "tags": ["lookup", "contact", "external"],
+  "rationale": "Core lookup scenario: external actor looking up a contact within their own company scope."
+}

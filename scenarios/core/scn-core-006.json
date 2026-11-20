@@ -1,0 +1,43 @@
+{
+  "id": "scn-core-006",
+  "suite": "core",
+  "title": "Auditor looks up the clinic scheduling activity",
+  "category": "lookup",
+  "persona": "auditor_raul",
+  "userProblem": "I need the activity record for the clinic scheduling meeting with Alan Frost at Cedar Health. Show me what happened and when.",
+  "expectedOutcome": {
+    "description": "Agent searches activities, finds act_002 (meeting with con_004 about dls_003), and answers with the type, date, and notes.",
+    "kind": "action-completed",
+    "keyFacts": ["act_002", "meeting", "2026-10-08"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "search_record",
+      "minTimes": 1,
+      "description": "Agent must look the activity up rather than answer from memory."
+    },
+    {
+      "id": "A02",
+      "type": "tool-args-match",
+      "tool": "search_record",
+      "fields": { "type": "activity" },
+      "description": "Search must be scoped to activities."
+    },
+    {
+      "id": "A03",
+      "type": "response-contains",
+      "anyOf": ["act_002", "Alan Frost", "meeting", "2026-10-08"],
+      "description": "Answer identifies the correct activity and its details."
+    },
+    { "id": "A04", "type": "db-record-count", "table": "activities", "expected": 6 },
+    { "id": "A05", "type": "llm-rubric", "rubricId": "core-quality", "minScore": 4 }
+  ],
+  "trace": {
+    "shapeId": "read-lookup",
+    "requiredSpans": ["agent.run", "tool.search_record", "llm.generate"]
+  },
+  "tags": ["lookup", "activity", "auditor"],
+  "rationale": "Core lookup scenario: activity search by read-only auditor for a meeting record."
+}

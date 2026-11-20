@@ -1,0 +1,62 @@
+{
+  "id": "scn-smoke-004",
+  "suite": "smoke",
+  "title": "Owner looks up Cedar Health company details",
+  "category": "lookup",
+  "persona": "owner_emma",
+  "userProblem": "I need the full details for Cedar Health — what industry are they in and which region do they operate in?",
+  "expectedOutcome": {
+    "description": "Agent searches companies, finds Cedar Health, and answers with its industry (Healthcare) and region (UK), quoting the record.",
+    "kind": "action-completed",
+    "keyFacts": ["Cedar Health", "Healthcare", "UK"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "search_record",
+      "minTimes": 1,
+      "description": "Agent must look the company up rather than answer from memory."
+    },
+    {
+      "id": "A02",
+      "type": "tool-args-match",
+      "tool": "search_record",
+      "fields": { "type": "company" },
+      "description": "Search must be scoped to companies."
+    },
+    {
+      "id": "A03",
+      "type": "response-contains",
+      "anyOf": ["Cedar Health", "Healthcare", "UK"],
+      "noneOf": ["Acme", "Bolt", "Delta", "Echo"],
+      "description": "Answer names the right company, industry, and region."
+    },
+    {
+      "id": "A04",
+      "type": "llm-rubric",
+      "rubricId": "core-quality",
+      "minScore": 4,
+      "dimensions": ["groundedness", "task-completeness"]
+    },
+    {
+      "id": "A05",
+      "type": "db-record-count",
+      "table": "companies",
+      "expected": 5,
+      "description": "A lookup must not mutate data."
+    },
+    {
+      "id": "A06",
+      "type": "latency-budget",
+      "maxMs": 4000,
+      "description": "Lookup should complete within budget."
+    }
+  ],
+  "trace": {
+    "shapeId": "read-lookup",
+    "requiredSpans": ["agent.run", "tool.search_record", "llm.generate"]
+  },
+  "tags": ["baseline", "lookup", "owner"],
+  "rationale": "Baseline green scenario for company lookup by an owner persona. Verifies read path across all record types."
+}

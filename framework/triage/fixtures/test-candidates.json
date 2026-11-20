@@ -1,0 +1,101 @@
+[
+  {
+    "source": "eval",
+    "scenarioId": "scenario_login_flow",
+    "signature": "scenario_login_flow|eval|missing-span",
+    "title": "eval: send_email runs emit no guardrail span (missing-span)",
+    "severity": "major",
+    "environment": "offline, node 24",
+    "repro": ["Log in as rep_liam", "Trigger a send_email", "Inspect trace spans"],
+    "expected": "guardrail.pii-check and tool.send_email spans both present",
+    "actual": "send_email ran without emitting its tool span and the PII guardrail span",
+    "evidence": {
+      "reportPath": "reports/trace-compliance.md",
+      "assertionIds": ["trace-shape-email-send"],
+      "transcriptRow": 12,
+      "traceId": "trc-scenario_login_flow"
+    },
+    "costUsd": 0,
+    "labels": ["trace", "missing-span", "BUG_UNLOGGED_TOOL_SPAN"]
+  },
+  {
+    "source": "eval",
+    "scenarioId": "scenario_append_line_item",
+    "signature": "scenario_append_line_item|eval|partial-write",
+    "title": "verify: deal total drops last line item on append (partial-write)",
+    "severity": "blocker",
+    "environment": "offline, node 24",
+    "repro": [
+      "Open deal dls_002 as rep_liam",
+      "Append a second line item",
+      "Check deals.amountCents vs SUM(line_items.totalCents)"
+    ],
+    "expected": "deal total equals sum of line items",
+    "actual": "appending ≥2 line items drops the last one while the deal total is updated",
+    "evidence": {
+      "reportPath": "reports/data-integrity-findings.md",
+      "assertionIds": ["db-field-equals-deals-total"],
+      "transcriptRow": 7,
+      "traceId": "trc-scenario_append_line_item"
+    },
+    "costUsd": 0,
+    "labels": ["db", "partial-write", "BUG_PARTIAL_LINE_ITEM_WRITE"]
+  },
+  {
+    "source": "eval",
+    "scenarioId": "scenario_invoice_fixed",
+    "signature": "scenario_invoice_fixed|eval|field-mismatch",
+    "title": "verify: invoice balance now correct after partial payment (field-mismatch)",
+    "severity": "major",
+    "environment": "offline, node 24",
+    "repro": ["Make partial payment on inv_004", "Check invoices.balanceCents"],
+    "expected": "balanceCents == amountCents - paidCents",
+    "actual": "balanceCents now equals amount minus paid after the fix",
+    "evidence": {
+      "reportPath": "reports/data-integrity-findings.md",
+      "assertionIds": ["db-consistency-invoice-balance"],
+      "transcriptRow": 11,
+      "traceId": "trc-scenario_invoice_fixed"
+    },
+    "costUsd": 0,
+    "labels": ["db", "field-mismatch"]
+  },
+  {
+    "source": "eval",
+    "scenarioId": "scenario_search_still",
+    "signature": "scenario_search_still|eval|hallucination",
+    "title": "verify: hallucinated fallback still returned for not-found search (hallucination)",
+    "severity": "major",
+    "environment": "offline, node 24",
+    "repro": ["Search for a non-existent record id", "Observe returned record"],
+    "expected": "not-found reported",
+    "actual": "a plausible invented record is still returned instead of not-found",
+    "evidence": {
+      "reportPath": "reports/pass-fail.md",
+      "assertionIds": ["response-contains-not-found"],
+      "transcriptRow": 9,
+      "traceId": "trc-scenario_search_still"
+    },
+    "costUsd": 0,
+    "labels": ["search", "hallucination", "BUG_HALLUCINATED_FALLBACK"]
+  },
+  {
+    "source": "eval",
+    "scenarioId": "scenario_brand_new",
+    "signature": "scenario_brand_new|eval|other",
+    "title": "eval: new failure with no prior ticket (other)",
+    "severity": "minor",
+    "environment": "offline, node 24",
+    "repro": ["Run the brand new scenario", "Observe the failure"],
+    "expected": "no failure",
+    "actual": "an unexpected behaviour was observed",
+    "evidence": {
+      "reportPath": "reports/pass-fail.md",
+      "assertionIds": ["response-contains-unexpected"],
+      "transcriptRow": 1,
+      "traceId": "trc-scenario_brand_new"
+    },
+    "costUsd": 0,
+    "labels": ["triage", "new"]
+  }
+]

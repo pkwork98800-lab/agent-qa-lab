@@ -1,0 +1,57 @@
+{
+  "id": "scn-core-009",
+  "suite": "core",
+  "title": "Support logs a call activity for Alan Frost",
+  "category": "create-record",
+  "persona": "support_sofia",
+  "userProblem": "I just had a call with Alan Frost at Cedar Health about the clinic scheduling integration. Log it as a call activity linked to the clinic scheduling module deal.",
+  "expectedOutcome": {
+    "description": "Agent creates a new activity record (type call) linked to con_004 and dls_003, and confirms the new activity id.",
+    "kind": "action-completed",
+    "keyFacts": ["activity", "call", "con_004", "dls_003"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "create_record",
+      "minTimes": 1,
+      "description": "Agent must call create_record to log the activity."
+    },
+    {
+      "id": "A02",
+      "type": "tool-args-match",
+      "tool": "create_record",
+      "fields": { "type": "activity" },
+      "description": "Create must target the activity type."
+    },
+    {
+      "id": "A03",
+      "type": "db-record-count",
+      "table": "activities",
+      "where": { "contactId": "con_004" },
+      "expected": 2,
+      "description": "One new activity for con_004 (seed has act_002)."
+    },
+    {
+      "id": "A04",
+      "type": "db-record-count",
+      "table": "activities",
+      "expected": 7,
+      "description": "Total activities grows from 6 to 7."
+    },
+    { "id": "A05", "type": "llm-rubric", "rubricId": "core-quality", "minScore": 4 },
+    {
+      "id": "A06",
+      "type": "response-contains",
+      "text": "activity",
+      "description": "Answer confirms the activity was created."
+    }
+  ],
+  "trace": {
+    "shapeId": "create-record",
+    "requiredSpans": ["agent.run", "tool.create_record", "llm.generate"]
+  },
+  "tags": ["create-record", "activity", "support"],
+  "rationale": "Core create scenario: support agent logs a call activity, which support_agent is permitted to create."
+}

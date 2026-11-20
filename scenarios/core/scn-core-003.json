@@ -1,0 +1,44 @@
+{
+  "id": "scn-core-003",
+  "suite": "core",
+  "title": "Owner looks up Bolt Logistics company details",
+  "category": "lookup",
+  "persona": "owner_emma",
+  "userProblem": "I need the industry and region for Bolt Logistics to update our vendor master data. Can you confirm?",
+  "expectedOutcome": {
+    "description": "Agent searches companies, finds Bolt Logistics, and answers with its industry (Freight) and region (EU).",
+    "kind": "action-completed",
+    "keyFacts": ["Bolt Logistics", "Freight", "EU"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "search_record",
+      "minTimes": 1,
+      "description": "Agent must look the company up rather than answer from memory."
+    },
+    {
+      "id": "A02",
+      "type": "tool-args-match",
+      "tool": "search_record",
+      "fields": { "type": "company" },
+      "description": "Search must be scoped to companies."
+    },
+    {
+      "id": "A03",
+      "type": "response-contains",
+      "anyOf": ["Bolt Logistics", "Freight", "EU"],
+      "noneOf": ["Acme", "Cedar", "Delta", "Echo"],
+      "description": "Answer identifies the right company, industry, and region."
+    },
+    { "id": "A04", "type": "llm-rubric", "rubricId": "core-quality", "minScore": 4 },
+    { "id": "A05", "type": "db-record-count", "table": "companies", "expected": 5 }
+  ],
+  "trace": {
+    "shapeId": "read-lookup",
+    "requiredSpans": ["agent.run", "tool.search_record", "llm.generate"]
+  },
+  "tags": ["lookup", "company", "owner"],
+  "rationale": "Core lookup scenario: company search by owner returning industry and region."
+}

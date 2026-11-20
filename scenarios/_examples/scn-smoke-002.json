@@ -1,0 +1,79 @@
+{
+  "id": "scn-smoke-002",
+  "suite": "smoke",
+  "title": "Rep advances the Bolt telematics deal to negotiation",
+  "category": "update-record",
+  "persona": "rep_liam",
+  "userProblem": "Marcus Webb just confirmed Bolt want to negotiate the fleet telematics pilot properly. Move that deal to negotiation and tell me what stage it's in now.",
+  "expectedOutcome": {
+    "description": "Agent finds deal dls_002 (Fleet telematics pilot, Bolt Logistics), updates its stage from proposal to negotiation, and confirms the new stage in the answer.",
+    "kind": "action-completed",
+    "keyFacts": ["dls_002", "negotiation"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "update_record",
+      "minTimes": 1
+    },
+    {
+      "id": "A02",
+      "type": "tool-args-match",
+      "tool": "update_record",
+      "fields": { "type": "deal", "id": "dls_002" },
+      "description": "Update targets the right deal."
+    },
+    {
+      "id": "A03",
+      "type": "tool-args-match",
+      "tool": "update_record",
+      "fields": { "fields": { "stage": "negotiation" } },
+      "description": "New stage is exactly negotiation."
+    },
+    {
+      "id": "A04",
+      "type": "db-field-equals",
+      "table": "deals",
+      "match": { "id": "dls_002" },
+      "field": "stage",
+      "expected": "negotiation",
+      "description": "DB reflects the update after the chat."
+    },
+    {
+      "id": "A05",
+      "type": "api-response-matches",
+      "method": "GET",
+      "path": "/api/v1/records/deal/dls_002",
+      "expectStatus": 200,
+      "fields": { "stage": "negotiation" },
+      "description": "Independent API check: the UI cannot be lying about state."
+    },
+    {
+      "id": "A06",
+      "type": "response-contains",
+      "regex": "(?i)negotiation"
+    },
+    {
+      "id": "A07",
+      "type": "llm-rubric",
+      "rubricId": "core-quality",
+      "minScore": 4
+    },
+    {
+      "id": "A08",
+      "type": "db-field-equals",
+      "table": "deals",
+      "match": { "id": "dls_002" },
+      "field": "amountCents",
+      "expected": 210000,
+      "description": "An unrelated field must be untouched by the stage update."
+    }
+  ],
+  "trace": {
+    "shapeId": "update-record",
+    "requiredSpans": ["agent.run", "tool.update_record", "llm.generate"]
+  },
+  "tags": ["baseline", "update", "sales"],
+  "rationale": "Baseline green scenario for the deterministic half: right record, right field, verified twice (DB + independent API)."
+}

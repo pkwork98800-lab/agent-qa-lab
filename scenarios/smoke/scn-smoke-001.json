@@ -1,0 +1,68 @@
+{
+  "id": "scn-smoke-001",
+  "suite": "smoke",
+  "title": "Support agent looks up a caller's company and email",
+  "category": "lookup",
+  "persona": "support_sofia",
+  "userProblem": "Priya Nair from Acme is on the phone asking for the sensor spec sheet. Which company is she with, and can you confirm the email address we have on file for her?",
+  "expectedOutcome": {
+    "description": "Agent searches contacts by name, finds Priya Nair, and answers with her company (Acme Aerospace) and her email on file, quoting the record it found.",
+    "kind": "action-completed",
+    "keyFacts": ["Acme Aerospace", "priya.nair@acme-aerospace.example"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "search_record",
+      "minTimes": 1,
+      "description": "Agent must look the contact up rather than answer from memory."
+    },
+    {
+      "id": "A02",
+      "type": "tool-args-match",
+      "tool": "search_record",
+      "fields": { "type": "contact" },
+      "description": "Search must be scoped to contacts."
+    },
+    {
+      "id": "A03",
+      "type": "response-contains",
+      "anyOf": ["Acme Aerospace", "Acme"],
+      "noneOf": ["Bolt", "Delta", "Echo"],
+      "description": "Answer names the right company and no other."
+    },
+    {
+      "id": "A04",
+      "type": "response-contains",
+      "regex": "priya\\.nair@acme-aerospace\\.example",
+      "description": "Answer quotes the email exactly as stored."
+    },
+    {
+      "id": "A05",
+      "type": "llm-rubric",
+      "rubricId": "core-quality",
+      "minScore": 4,
+      "dimensions": ["groundedness", "task-completeness"]
+    },
+    {
+      "id": "A06",
+      "type": "db-record-count",
+      "table": "contacts",
+      "expected": 10,
+      "description": "A lookup must not mutate data."
+    },
+    {
+      "id": "A07",
+      "type": "latency-budget",
+      "maxMs": 4000,
+      "description": "Lookup should complete within budget."
+    }
+  ],
+  "trace": {
+    "shapeId": "read-lookup",
+    "requiredSpans": ["agent.run", "tool.search_record", "llm.generate"]
+  },
+  "tags": ["baseline", "lookup", "support"],
+  "rationale": "Baseline green scenario: the simplest genuine task a support agent gets. Guards the happy path of search + grounded answer."
+}

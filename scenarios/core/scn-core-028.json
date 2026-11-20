@@ -1,0 +1,58 @@
+{
+  "id": "scn-core-028",
+  "suite": "core",
+  "title": "Support looks up Grace Okafor then updates her phone",
+  "category": "multi-step",
+  "persona": "support_sofia",
+  "userProblem": "Grace Okafor at Cedar Health has a new phone number. First find her contact record, then update her phone to +44 20 7946 0088.",
+  "expectedOutcome": {
+    "description": "Agent looks up con_005 (Grace Okafor), updates her phone to +44 20 7946 0088, and confirms the change.",
+    "kind": "action-completed",
+    "keyFacts": ["con_005", "Grace Okafor", "+44 20 7946 0088"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "search_record",
+      "minTimes": 1,
+      "description": "Agent must look the contact up first."
+    },
+    {
+      "id": "A02",
+      "type": "tool-called",
+      "tool": "update_record",
+      "minTimes": 1,
+      "description": "Agent must update the contact after lookup."
+    },
+    {
+      "id": "A03",
+      "type": "tool-args-match",
+      "tool": "update_record",
+      "fields": { "type": "contact", "id": "con_005", "fields": { "phone": "+44 20 7946 0088" } },
+      "description": "Update targets the right contact and phone field."
+    },
+    {
+      "id": "A04",
+      "type": "db-field-equals",
+      "table": "contacts",
+      "match": { "id": "con_005" },
+      "field": "phone",
+      "expected": "+44 20 7946 0088",
+      "description": "DB reflects the updated phone number."
+    },
+    { "id": "A05", "type": "llm-rubric", "rubricId": "core-quality", "minScore": 4 },
+    {
+      "id": "A06",
+      "type": "trace-shape",
+      "shapeId": "multi-step",
+      "description": "Trace must follow the multi-step shape: search then update."
+    }
+  ],
+  "trace": {
+    "shapeId": "multi-step",
+    "requiredSpans": ["agent.run", "tool.search_record", "tool.update_record", "llm.generate"]
+  },
+  "tags": ["multi-step", "contact", "support"],
+  "rationale": "Core multi-step scenario: lookup then update, verifying both steps execute in order."
+}

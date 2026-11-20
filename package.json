@@ -1,0 +1,48 @@
+{
+  "name": "agent-qa-lab",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Evaluation harness for a tool-calling support agent: realistic chat scenarios, deterministic + judged assertions, ground-truth DB/API verification, trace compliance, red-team probes, judge calibration and triage.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "app:dev": "tsx apps/under-test/server.ts",
+    "app:seed": "tsx apps/under-test/seed.ts",
+    "app:reset": "tsx apps/under-test/seed.ts --reset",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --check .",
+    "format:write": "prettier --write .",
+    "test": "node --import tsx --test tests/",
+    "eval": "tsx scripts/run-eval.ts",
+    "eval:smoke": "tsx scripts/run-eval.ts --suite smoke",
+    "eval:redteam": "tsx scripts/run-eval.ts --suite redteam",
+    "eval:hardened": "tsx scripts/run-eval.ts --suite smoke --hardened",
+    "eval:promptfoo": "promptfoo eval -c framework/promptfoo/promptfooconfig.yaml",
+    "report": "tsx scripts/generate-reports.ts",
+    "calibrate": "tsx framework/judges/calibrate.ts",
+    "triage": "tsx framework/triage/run-triage.ts",
+    "test:e2e": "playwright test --config framework/playwright/playwright.config.ts",
+    "verify": "npm run lint && npm run typecheck && npm run eval:smoke && npm run report && npx playwright test --config framework/playwright/playwright.config.ts --list"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.2.0",
+    "express": "^4.21.2",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/express": "^4.17.23",
+    "@types/node": "^22.10.0",
+    "eslint": "^9.17.0",
+    "playwright": "^1.49.0",
+    "prettier": "^3.4.0",
+    "promptfoo": "^0.119.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.18.0"
+  }
+}

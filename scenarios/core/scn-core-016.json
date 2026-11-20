@@ -1,0 +1,60 @@
+{
+  "id": "scn-core-016",
+  "suite": "core",
+  "title": "Owner updates the risk reporting deal amount",
+  "category": "update-record",
+  "persona": "owner_emma",
+  "userProblem": "The risk reporting add-on deal dls_005 has been rescoped. Update its amount from 132000 to 150000 USD and confirm.",
+  "expectedOutcome": {
+    "description": "Agent updates deal dls_005 amountCents to 150000 and confirms the change, verifying the stage is untouched.",
+    "kind": "action-completed",
+    "keyFacts": ["dls_005", "150000", "USD"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "update_record",
+      "minTimes": 1,
+      "description": "Agent must call update_record for the amount change."
+    },
+    {
+      "id": "A02",
+      "type": "tool-args-match",
+      "tool": "update_record",
+      "fields": { "type": "deal", "id": "dls_005", "fields": { "amountCents": 150000 } },
+      "description": "Update targets the right deal and amount field."
+    },
+    {
+      "id": "A03",
+      "type": "db-field-equals",
+      "table": "deals",
+      "match": { "id": "dls_005" },
+      "field": "amountCents",
+      "expected": 150000,
+      "description": "DB reflects the updated amount."
+    },
+    {
+      "id": "A04",
+      "type": "db-field-equals",
+      "table": "deals",
+      "match": { "id": "dls_005" },
+      "field": "stage",
+      "expected": "lost",
+      "description": "Unrelated fields must be untouched."
+    },
+    { "id": "A05", "type": "llm-rubric", "rubricId": "core-quality", "minScore": 4 },
+    {
+      "id": "A06",
+      "type": "response-contains",
+      "regex": "150,?000|150000",
+      "description": "Answer confirms the new amount."
+    }
+  ],
+  "trace": {
+    "shapeId": "update-record",
+    "requiredSpans": ["agent.run", "tool.update_record", "llm.generate"]
+  },
+  "tags": ["update-record", "deal", "owner"],
+  "rationale": "Core update scenario: owner updates a deal amount, which owner is permitted to do."
+}

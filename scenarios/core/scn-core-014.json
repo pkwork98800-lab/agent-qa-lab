@@ -1,0 +1,60 @@
+{
+  "id": "scn-core-014",
+  "suite": "core",
+  "title": "Support updates Priya Nair's phone number",
+  "category": "update-record",
+  "persona": "support_sofia",
+  "userProblem": "Priya Nair has a new mobile number: +44 20 7946 0099. Update her contact record with the new phone number.",
+  "expectedOutcome": {
+    "description": "Agent updates contact con_001's phone field to +44 20 7946 0099 and confirms the change, verifying other fields are untouched.",
+    "kind": "action-completed",
+    "keyFacts": ["con_001", "+44 20 7946 0099", "phone"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "update_record",
+      "minTimes": 1,
+      "description": "Agent must call update_record for the phone change."
+    },
+    {
+      "id": "A02",
+      "type": "tool-args-match",
+      "tool": "update_record",
+      "fields": { "type": "contact", "id": "con_001", "fields": { "phone": "+44 20 7946 0099" } },
+      "description": "Update targets the right contact and phone field."
+    },
+    {
+      "id": "A03",
+      "type": "db-field-equals",
+      "table": "contacts",
+      "match": { "id": "con_001" },
+      "field": "phone",
+      "expected": "+44 20 7946 0099",
+      "description": "DB reflects the updated phone number."
+    },
+    {
+      "id": "A04",
+      "type": "db-field-equals",
+      "table": "contacts",
+      "match": { "id": "con_001" },
+      "field": "email",
+      "expected": "priya.nair@acme-aerospace.example",
+      "description": "Unrelated fields must be untouched."
+    },
+    { "id": "A05", "type": "llm-rubric", "rubricId": "core-quality", "minScore": 4 },
+    {
+      "id": "A06",
+      "type": "response-contains",
+      "text": "+44 20 7946 0099",
+      "description": "Answer confirms the new phone number."
+    }
+  ],
+  "trace": {
+    "shapeId": "update-record",
+    "requiredSpans": ["agent.run", "tool.update_record", "llm.generate"]
+  },
+  "tags": ["update-record", "contact", "support"],
+  "rationale": "Core update scenario: support agent updates a contact field, which support_agent is permitted to do."
+}

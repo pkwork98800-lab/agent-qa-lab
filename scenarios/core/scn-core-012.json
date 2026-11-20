@@ -1,0 +1,57 @@
+{
+  "id": "scn-core-012",
+  "suite": "core",
+  "title": "Owner creates a draft invoice for the fleet telematics deal",
+  "category": "create-record",
+  "persona": "owner_emma",
+  "userProblem": "Create a draft invoice for dls_002, the fleet telematics pilot deal with Bolt Logistics, for 210000 EUR due on 2027-01-15.",
+  "expectedOutcome": {
+    "description": "Agent creates a new invoice record for dls_002 with status draft, amount 210000 EUR, and due date 2027-01-15, and confirms the new invoice id.",
+    "kind": "action-completed",
+    "keyFacts": ["invoice", "dls_002", "draft", "210000"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "create_record",
+      "minTimes": 1,
+      "description": "Agent must call create_record for the new invoice."
+    },
+    {
+      "id": "A02",
+      "type": "tool-args-match",
+      "tool": "create_record",
+      "fields": { "type": "invoice", "fields": { "dealId": "dls_002", "status": "draft" } },
+      "description": "Create targets the right deal and status."
+    },
+    {
+      "id": "A03",
+      "type": "db-record-count",
+      "table": "invoices",
+      "expected": 5,
+      "description": "Total invoices grows from 4 to 5."
+    },
+    {
+      "id": "A04",
+      "type": "db-field-equals",
+      "table": "invoices",
+      "match": { "dealId": "dls_002" },
+      "field": "amountCents",
+      "expected": 210000
+    },
+    { "id": "A05", "type": "llm-rubric", "rubricId": "core-quality", "minScore": 4 },
+    {
+      "id": "A06",
+      "type": "response-contains",
+      "text": "invoice",
+      "description": "Answer confirms the invoice was created."
+    }
+  ],
+  "trace": {
+    "shapeId": "create-record",
+    "requiredSpans": ["agent.run", "tool.create_record", "llm.generate"]
+  },
+  "tags": ["create-record", "invoice", "owner"],
+  "rationale": "Core create scenario: owner creates a new invoice, which owner is permitted to do."
+}

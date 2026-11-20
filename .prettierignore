@@ -1,0 +1,7 @@
+# Lockfiles and generated output are not ours to format.
+node_modules
+runs
+reports
+dist
+pnpm-lock.yaml
+package-lock.json

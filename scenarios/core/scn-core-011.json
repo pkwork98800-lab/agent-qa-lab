@@ -1,0 +1,57 @@
+{
+  "id": "scn-core-011",
+  "suite": "core",
+  "title": "Rep creates a new contact for Acme",
+  "category": "create-record",
+  "persona": "rep_liam",
+  "userProblem": "Jonas Weber has a new colleague at Acme, Elena Rossi, who will be the new Spares Buyer. Add her as a contact under Acme Aerospace with email elena.rossi@acme-aerospace.example.",
+  "expectedOutcome": {
+    "description": "Agent creates a new contact record for Elena Rossi under cmp_acme with the given email and role, and confirms the new contact id.",
+    "kind": "action-completed",
+    "keyFacts": ["contact", "Elena Rossi", "cmp_acme", "elena.rossi@acme-aerospace.example"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "create_record",
+      "minTimes": 1,
+      "description": "Agent must call create_record for the new contact."
+    },
+    {
+      "id": "A02",
+      "type": "tool-args-match",
+      "tool": "create_record",
+      "fields": { "type": "contact", "fields": { "companyId": "cmp_acme" } },
+      "description": "Create targets the right company."
+    },
+    {
+      "id": "A03",
+      "type": "db-record-count",
+      "table": "contacts",
+      "expected": 11,
+      "description": "Total contacts grows from 10 to 11."
+    },
+    {
+      "id": "A04",
+      "type": "db-field-equals",
+      "table": "contacts",
+      "match": { "name": "Elena Rossi" },
+      "field": "email",
+      "expected": "elena.rossi@acme-aerospace.example"
+    },
+    { "id": "A05", "type": "llm-rubric", "rubricId": "core-quality", "minScore": 4 },
+    {
+      "id": "A06",
+      "type": "response-contains",
+      "text": "contact",
+      "description": "Answer confirms the contact was created."
+    }
+  ],
+  "trace": {
+    "shapeId": "create-record",
+    "requiredSpans": ["agent.run", "tool.create_record", "llm.generate"]
+  },
+  "tags": ["create-record", "contact", "sales"],
+  "rationale": "Core create scenario: sales rep creates a new contact, which sales_rep is permitted to do."
+}

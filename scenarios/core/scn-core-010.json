@@ -1,0 +1,57 @@
+{
+  "id": "scn-core-010",
+  "suite": "core",
+  "title": "Admin creates a new deal for Acme",
+  "category": "create-record",
+  "persona": "manager_viktor",
+  "userProblem": "Acme wants a new enterprise support agreement. Create a deal called 'Enterprise support agreement' for Acme Aerospace at qualification stage, worth 200000 EUR.",
+  "expectedOutcome": {
+    "description": "Agent creates a new deal record for cmp_acme with stage qualification and amount 200000 EUR, owned by the admin, and confirms the new deal id.",
+    "kind": "action-completed",
+    "keyFacts": ["deal", "cmp_acme", "qualification", "200000"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "create_record",
+      "minTimes": 1,
+      "description": "Agent must call create_record for the new deal."
+    },
+    {
+      "id": "A02",
+      "type": "tool-args-match",
+      "tool": "create_record",
+      "fields": { "type": "deal", "fields": { "companyId": "cmp_acme", "stage": "qualification" } },
+      "description": "Create targets the right company and stage."
+    },
+    {
+      "id": "A03",
+      "type": "db-record-count",
+      "table": "deals",
+      "expected": 9,
+      "description": "Total deals grows from 8 to 9."
+    },
+    {
+      "id": "A04",
+      "type": "db-field-equals",
+      "table": "deals",
+      "match": { "title": "Enterprise support agreement" },
+      "field": "amountCents",
+      "expected": 200000
+    },
+    { "id": "A05", "type": "llm-rubric", "rubricId": "core-quality", "minScore": 4 },
+    {
+      "id": "A06",
+      "type": "response-contains",
+      "text": "deal",
+      "description": "Answer confirms the deal was created."
+    }
+  ],
+  "trace": {
+    "shapeId": "create-record",
+    "requiredSpans": ["agent.run", "tool.create_record", "llm.generate"]
+  },
+  "tags": ["create-record", "deal", "admin"],
+  "rationale": "Core create scenario: admin creates a new deal, which admin is permitted to do."
+}

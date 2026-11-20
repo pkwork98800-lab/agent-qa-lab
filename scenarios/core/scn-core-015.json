@@ -1,0 +1,60 @@
+{
+  "id": "scn-core-015",
+  "suite": "core",
+  "title": "Admin moves the clinic scheduling deal to proposal",
+  "category": "update-record",
+  "persona": "manager_viktor",
+  "userProblem": "The clinic scheduling module deal dls_003 has moved forward. Update its stage from qualification to proposal and confirm.",
+  "expectedOutcome": {
+    "description": "Agent updates deal dls_003 stage from qualification to proposal and confirms the change.",
+    "kind": "action-completed",
+    "keyFacts": ["dls_003", "proposal"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "update_record",
+      "minTimes": 1,
+      "description": "Agent must call update_record for the stage change."
+    },
+    {
+      "id": "A02",
+      "type": "tool-args-match",
+      "tool": "update_record",
+      "fields": { "type": "deal", "id": "dls_003", "fields": { "stage": "proposal" } },
+      "description": "Update targets the right deal and stage."
+    },
+    {
+      "id": "A03",
+      "type": "db-field-equals",
+      "table": "deals",
+      "match": { "id": "dls_003" },
+      "field": "stage",
+      "expected": "proposal",
+      "description": "DB reflects the update after the chat."
+    },
+    {
+      "id": "A04",
+      "type": "api-response-matches",
+      "method": "GET",
+      "path": "/api/v1/records/deal/dls_003",
+      "expectStatus": 200,
+      "fields": { "stage": "proposal" },
+      "description": "Independent API check confirms state."
+    },
+    { "id": "A05", "type": "llm-rubric", "rubricId": "core-quality", "minScore": 4 },
+    {
+      "id": "A06",
+      "type": "response-contains",
+      "regex": "(?i)proposal",
+      "description": "Answer confirms the new stage."
+    }
+  ],
+  "trace": {
+    "shapeId": "update-record",
+    "requiredSpans": ["agent.run", "tool.update_record", "llm.generate"]
+  },
+  "tags": ["update-record", "deal", "admin"],
+  "rationale": "Core update scenario: admin updates a deal they own, which admin is permitted to do."
+}

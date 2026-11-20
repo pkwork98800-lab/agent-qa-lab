@@ -1,0 +1,50 @@
+{
+  "id": "scn-core-005",
+  "suite": "core",
+  "title": "Rep looks up the loyalty pilot deal by title alias",
+  "category": "lookup",
+  "persona": "rep_liam",
+  "userProblem": "I need the stage and value of the loyalty pilot deal for Delta Retail. Look it up by name.",
+  "expectedOutcome": {
+    "description": "Agent searches deals by title alias 'loyalty pilot', finds dls_007, and answers with its stage (qualification) and value ($48,000).",
+    "kind": "action-completed",
+    "keyFacts": ["dls_007", "qualification", "48000"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "search_record",
+      "minTimes": 1,
+      "description": "Agent must look the deal up rather than answer from memory."
+    },
+    {
+      "id": "A02",
+      "type": "tool-args-match",
+      "tool": "search_record",
+      "fields": { "type": "deal" },
+      "description": "Search must be scoped to deals."
+    },
+    {
+      "id": "A03",
+      "type": "response-contains",
+      "anyOf": ["loyalty pilot", "dls_007", "qualification"],
+      "noneOf": ["Seasonal promotion", "Spares support"],
+      "description": "Answer identifies the correct deal."
+    },
+    {
+      "id": "A04",
+      "type": "response-contains",
+      "regex": "48,?000|48000",
+      "description": "Answer quotes the deal value."
+    },
+    { "id": "A05", "type": "db-record-count", "table": "deals", "expected": 8 },
+    { "id": "A06", "type": "llm-rubric", "rubricId": "core-quality", "minScore": 4 }
+  ],
+  "trace": {
+    "shapeId": "read-lookup",
+    "requiredSpans": ["agent.run", "tool.search_record", "llm.generate"]
+  },
+  "tags": ["lookup", "deal", "sales"],
+  "rationale": "Core lookup scenario: deal search by title alias rather than exact id."
+}

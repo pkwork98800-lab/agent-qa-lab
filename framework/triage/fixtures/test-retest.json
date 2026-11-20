@@ -1,0 +1,4 @@
+{
+  "scenario_invoice_fixed|eval|field-mismatch": "fixed",
+  "scenario_search_still|eval|hallucination": "still-failing"
+}

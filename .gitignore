@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Generated run artefacts — keep the folder, drop the contents.
+runs/*
+!runs/latest/
+runs/latest/*
+!runs/latest/.gitkeep
+
+# Reports are generated — keep the folder, drop the generated markdown.
+reports/*.md
+!reports/.gitkeep
+
+# Local app data
+data/
+*.sqlite
+
+# Build + tool output
+dist/
+coverage/
+test-results/
+playwright-report/
+
+# Secrets
+.env
+
+# OS noise
+.DS_Store

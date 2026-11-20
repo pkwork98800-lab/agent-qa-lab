@@ -1,0 +1,50 @@
+{
+  "id": "scn-smoke-008",
+  "suite": "smoke",
+  "title": "Rep looks up a call activity for Priya Nair",
+  "category": "lookup",
+  "persona": "rep_liam",
+  "userProblem": "I had a call with Priya Nair about the predictive maintenance pilot. Show me the activity record and when it happened.",
+  "expectedOutcome": {
+    "description": "Agent searches activities, finds act_001 (call with Priya Nair about dls_001), and answers with the activity type, date, and notes.",
+    "kind": "action-completed",
+    "keyFacts": ["act_001", "call", "2026-10-06"]
+  },
+  "assertions": [
+    {
+      "id": "A01",
+      "type": "tool-called",
+      "tool": "search_record",
+      "minTimes": 1,
+      "description": "Agent must look the activity up rather than answer from memory."
+    },
+    {
+      "id": "A02",
+      "type": "tool-args-match",
+      "tool": "search_record",
+      "fields": { "type": "activity" },
+      "description": "Search must be scoped to activities."
+    },
+    {
+      "id": "A03",
+      "type": "response-contains",
+      "anyOf": ["act_001", "Priya Nair", "call", "2026-10-06"],
+      "noneOf": ["meeting", "note"],
+      "description": "Answer identifies the correct activity and its type."
+    },
+    { "id": "A04", "type": "llm-rubric", "rubricId": "core-quality", "minScore": 4 },
+    {
+      "id": "A05",
+      "type": "db-record-count",
+      "table": "activities",
+      "expected": 6,
+      "description": "A lookup must not mutate data."
+    }
+  ],
+  "trace": {
+    "shapeId": "read-lookup",
+    "requiredSpans": ["agent.run", "tool.search_record", "llm.generate"]
+  },
+  "tags": ["baseline", "lookup", "sales"],
+  "rationale": "Baseline green scenario for activity lookup. Verifies read path for activities linked to contacts and deals."
+}
