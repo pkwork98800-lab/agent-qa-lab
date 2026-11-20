@@ -1,5 +1,7 @@
 # Agent QA Lab — evaluation harness for a tool-calling support agent
 
+**Made by Praveen** — AI Agent QA / Evaluation Engineer portfolio.
+
 **What this is:** a Playwright + Promptfoo harness that runs realistic support
 conversations against a live agent, verifies both the answer and the resulting
 app data, audits every trace, and files deduplicated triage tickets. Built as a
